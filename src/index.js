@@ -1,8 +1,8 @@
 'use strict';
 
-import Store from './adapter/store/leancloud';
-import Cache from './adapter/cache/leancloud';
-import Session from './adapter/cache/leancloud';
+import Store from './adapter/store';
+import Cache from './adapter/cache';
+import Session from './adapter/session';
 
 export default {
   Store,

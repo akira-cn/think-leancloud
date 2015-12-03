@@ -1,7 +1,7 @@
 {
   "name": "think-leancloud",
   "description": "",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "author": {},
   "scripts": {
     "test": "mocha --reporter spec --timeout 5000 --recursive test/",
@@ -14,7 +14,8 @@
   "contributors": [],
   "main": "lib/index.js",
   "dependencies": {
-    "babel-runtime": "5.8.25"
+    "babel-runtime": "5.8.25",
+    "avoscloud-sdk": "*"
   },
   "devDependencies": {
     "mocha": "1.20.1",
@@ -29,7 +30,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "<Github URL>"
+    "url": "https://github.com/akira-cn/think-leancloud"
   },
   "engines": {
     "node": ">=0.12.0"
@@ -37,6 +38,6 @@
   "license": "MIT",
   "readmeFilename": "README.md",
   "bugs": {
-    "url": "<Github URL>/issues"
+    "url": "https://github.com/akira-cn/think-leancloud/issues"
   }
 }
