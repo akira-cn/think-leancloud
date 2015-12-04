@@ -1,6 +1,9 @@
 'use strict';
 
 let AV = require('avoscloud-sdk');
+let crypto = require("crypto");
+
+let sha1 = (str) => require('crypto').createHash('sha1').update(str, 'utf8').digest('hex');
 
 /**
  * leancloud store adapter
@@ -28,8 +31,9 @@ export default class Storage extends think.adapter.base {
    * @return {[]}         []
    */
   init(config){
-    let {name, appid, appkey} = config;
+    let {name, salt, appid, appkey} = config;
     this.name = name || "ThinkStorage";
+    this.salt = salt;
     AV.initialize(appid, appkey);
   }
   getInstance(key){
@@ -38,15 +42,13 @@ export default class Storage extends think.adapter.base {
       let query = new AV.Query(AVStorage);
       query.equalTo('key', key);
       query.find({
-        success: function(results) {
+        success: results => {
           //console.log(results.length);
           let store = results[0];
           if(store == null) store = new AVStorage();
           resolve(store);
         },
-        error: function(error) {
-          resolve(new AVStorage());
-        }
+        error: error => resolve(new AVStorage())
       });
     });    
   }
@@ -57,8 +59,18 @@ export default class Storage extends think.adapter.base {
    */
   get(key){
     return new Promise(async (resolve, reject) => {
+      if(this.salt){
+        key = this._encode(key);
+      }
+
       let store = await this.getInstance(key);
       let value = store.get('value');
+
+      if(this.salt && value){
+        let data = this._decode(value, key);
+        value = JSON.parse(data);
+      }
+
       resolve(value && value.data);
     });
   }
@@ -69,14 +81,21 @@ export default class Storage extends think.adapter.base {
    */
   set(key, content){
     return new Promise(async (resolve, reject) => {
+      content = {data: content};
+
+      if(this.salt){
+        //加密
+        key = this._encode(key);
+        content = this._encode(JSON.stringify(content), key);
+      }
+      
       let store = await this.getInstance(key);
       store.set('key', key);
-      store.set('value', {data:content});
+      store.set('value', content);
+
       store.save({
-        success: function(item){
-          resolve();
-        },
-        error: function(post, error) {
+        success: item => resolve(),
+        error: (post, error) => {
           throw new Error(error.message);
         }
       });
@@ -88,6 +107,10 @@ export default class Storage extends think.adapter.base {
    * @return {}     []
    */
   async delete(key){
+    if(this.salt){
+      key = this._encode(key);
+    }
+
     let store = await this.getInstance(key);
     return store.destroy();
   }
@@ -100,20 +123,41 @@ export default class Storage extends think.adapter.base {
     return new Promise((resolve, reject) => {
       let query = new AV.Query(AVStorage);
       query.find({
-        success: function(results) {
+        success: results => {
           //console.log(results.length);
-          var data = {};
-          results.forEach(function(store){
-            var key = store.get('key');
-            var value = store.get('value');
-            data[key] = value.data;
+          let data = {};
+          results.forEach(store => {
+
+            let key = store.get('key');
+            let value = store.get('value');
+
+            if(this.salt && value){
+              let data = this._decode(value, key);
+              value = JSON.parse(data);
+            }
+            
+            if(this.salt){
+              key = this._decode(key);
+            }
+
+            data[key] = value && value.data;
           });
           resolve(data);
         },
-        error: function(error) {
-          resolve({});
-        }
+        error: () => resolve({})
       });
     });
+  }
+  _encode(str, key = ''){
+    let ciphter = crypto.createCipheriv('bf', this.salt, sha1(this.salt + key).slice(0, 8));
+    let ret = ciphter.update(str,'utf8','hex');
+    ret += ciphter.final('hex');
+    return ret;
+  }
+  _decode(str, key = ''){
+    let decipher = crypto.createDecipheriv("bf", this.salt, sha1(this.salt + key).slice(0, 8));
+    let ret = decipher.update(str, "hex", "utf8");
+    ret += decipher.final('utf8');
+    return ret;
   }
 }

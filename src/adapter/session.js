@@ -18,9 +18,14 @@ export default class extends think.adapter.base {
 
     this.isChanged = false;
 
+    //用这个配置格式可以兼容旧版本的thinkjs，之前parseConfig有bug
     this.cache = new AVCache({
-      name: 'ThinkSession',
-      timeout: this.timeout,
+      adapter:{
+        leancloud: {
+          name: 'ThinkSession',
+          timeout: this.timeout,
+        }
+      }
     });
 
     this.gcType = 'session_leancloud';

@@ -17,9 +17,11 @@ export default class extends think.adapter.base {
     this.name = this.options.name || 'ThinkCache';
     this.timeout = this.options.timeout || 0;
     this.prefix = this.options.prefix || '';  
+    this.salt = this.options.salt;
 
     this.store = new AVStore(think.extend({
-                              name: this.name
+                              name: this.name,
+                              salt: this.salt,
                             }, think.config('leancloud')));
 
     this.gcType = "cache_leancloud";
