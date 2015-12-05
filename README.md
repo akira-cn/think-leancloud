@@ -68,7 +68,7 @@ think.adapter('session', 'leancloud', LeancloudAdapter.Session);
 ```
 
 
-### Encrypt by salt
+### Encryption
 
 ```js
 //src/common/config/cache.js
