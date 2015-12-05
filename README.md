@@ -68,6 +68,22 @@ think.adapter('session', 'leancloud', LeancloudAdapter.Session);
 ```
 
 
+### Encrypt by salt
+
+```js
+//src/common/config/cache.js
+export default {
+  type: 'leancloud',
+  salt: 'your_salt',
+  adapter: {
+    leancloud: {
+      prefix: '',
+      name: 'ThinkCache'
+    }
+  }
+}
+```
+
 ## LICENSE
 
 MIT
